@@ -28,11 +28,13 @@ Func c($s = "", $nl = True, $v1 = 0x0, $v2 = 0x0, $v3 = 0x0, _
 			If @extended = 0 Then ExitLoop
 		Next
 		$s = StringReplace($s, "@PH@", "$")
+		$s = StringReplace($s, "@PH2@", "$")
 	EndIf
 	If $nl Then
-		$s &= @CRLF
+		ConsoleWrite($s & @CRLF)
+	Else
+		ConsoleWrite($s)
 	EndIf
-	ConsoleWrite($s)
 	If @NumParams = 1 Then
 		Return $s
 	EndIf
