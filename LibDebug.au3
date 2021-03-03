@@ -104,11 +104,11 @@ Func ca($a = [], $nl = True)
 			For $i = 0 To UBound($a, 1) - 1
 				$s &= "["
 				For $j = 0 To UBound($a, 2) - 1
-					If IsString($a[$i]) Then
+					If IsString($a[$i][$j]) Then
 						$s &= '"'
 					EndIf
 					$s &= $a[$i][$j]
-					If IsString($a[$i]) Then
+					If IsString($a[$i][$j]) Then
 						$s &= '"'
 					EndIf
 					If $j < UBound($a, 2) - 1 Then
