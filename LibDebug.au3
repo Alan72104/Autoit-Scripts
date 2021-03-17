@@ -38,7 +38,7 @@ Func c($s = "", $nl = True, $v1 = 0x0, $v2 = 0x0, $v3 = 0x0, _
 	If @NumParams = 1 Then
 		Return $s
 	EndIf
-EndFunc	
+EndFunc
 
 ; Insert variable
 ; Returns a string with all given variables inserted into
@@ -86,7 +86,10 @@ Func cv($nl = True, $v1 = 0x0, $v2 = 0x0, $v3 = 0x0, $v4 = 0x0, $v5 = 0x0, _
 EndFunc
 
 ; Consoleout Array
-Func ca($a = [], $nl = True)
+Func ca($a, $nl = True)
+	If Not IsArray($a) Then
+		Return
+	EndIf
 	Local $s = "["
 	Switch UBound($a, 0)
 		Case 1
@@ -131,6 +134,10 @@ Func ca($a = [], $nl = True)
 EndFunc
 
 ; Consoleout Error
-Func ce($nl = True)
-	$nl ? ConsoleWrite(@ERROR & @CRLF) : ConsoleWrite(@ERROR)
+Func ce($error, $nl = True)
+	If $nl Then
+		ConsoleWrite("ERROR:" & $error & @CRLF)
+	Else
+		ConsoleWrite("ERROR:" & $error)
+	EndIf
 EndFunc
