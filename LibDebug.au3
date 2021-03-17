@@ -134,10 +134,10 @@ Func ca($a, $nl = True)
 EndFunc
 
 ; Consoleout Error
-Func ce($error, $nl = True)
+Func ce($e, $nl = True)
 	If $nl Then
-		ConsoleWrite("ERROR:" & $error & @CRLF)
+		ConsoleWrite("ERROR:" & $e & @CRLF)
 	Else
-		ConsoleWrite("ERROR:" & $error)
+		ConsoleWrite("ERROR:" & $e)
 	EndIf
 EndFunc
