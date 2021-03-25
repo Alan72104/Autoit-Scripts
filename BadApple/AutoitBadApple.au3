@@ -1,6 +1,6 @@
 #include "..\LibDebug.au3"
-#include <GDIPlus.au3>
-#include <Misc.au3>
+#include <FileConstants.au3>
+#include <AutoItConstants.au3>
 
 Global $frameCount = 6572
 Global $hImage[$frameCount]
@@ -9,6 +9,14 @@ Global $asciiFilePath = @ScriptDir & "\ascii.txt"
 Global $asciiFile
 Global $frameTimer
 Global $gdiStarted = False
+Global $width = 160
+Global $height = 120
+Global $processCount = 4
+Global $framePerProcess = Floor($frameCount / $processCount)
+Global $extraFrame = $frameCount - $framePerProcess * $processCount
+Global $pid[$processCount]
+Global $processIsActive = False
+Global $hasFinished[$processCount]
 HotKeySet("{F7}", "Terminate")
 OnAutoItExitRegister("Dispose")
 
@@ -16,28 +24,50 @@ Func Load()
 	Local $hFile
 	If Not FileExists($asciiFilePath) Then
 		c("Creating ascii file")
-		$gdiStarted = True
-		_GDIPlus_Startup()
-		For $i = 0 To $frameCount - 1
-			$hImage[$i] = _GDIPlus_ImageLoadFromFile(@ScriptDir & "\img\" & $i + 1 & ".jpeg")
+		$processIsActive = True
+		c("Spawning processes, count: $, frame per process: $, extra frame: $", 1, $processCount, $framePerProcess, $extraFrame)
+		For $i = 0 To $processCount - 1
+			$pid[$i] = Run(@AutoItExe & " ConvertToAscii.Batch.a3x " & _
+										1 + $framePerProcess * $i & " " & _
+										1 + $framePerProcess * $i + ($framePerProcess - 1) + ($i = $processCount - 1 ? $extraFrame : 0) & " " & _
+										'"process' & $i + 1 & '.txt" ' & $width & " " & $height, @ScriptDir & "\", @SW_HIDE, $STDOUT_CHILD)
+			c("Process $ spawned", 1, $i + 1)
+		Next
+		For $i = 0 To $processCount - 1
+			$hasFinished[$i] = False
+		Next
+		Local $out = ""
+		While 1
+			For $i = 0 To $processCount - 1
+				If Not $hasFinished[$i] Then
+					$out = StdoutRead($pid[$i])
+					If $out <> "" Then
+						c("[Process" & $i + 1 & "] " & $out, False)
+						If StringInStr($out, "Disposing completed") <> 0 Then
+							$hasFinished[$i] = True
+						EndIf
+					EndIf
+				EndIf
+			Next
+			For $i = 0 To $processCount - 1
+				If Not $hasFinished[$i] Then ExitLoop
+				If $i = $processCount - 1 Then ExitLoop 2
+			Next
+		WEnd
+		$processIsActive = False
+		c("Converting finished")
+		c("Concating files")
+		Local $processFiles[$processCount]
+		Local $file
+		For $i = 1 To $processCount
+			$hFile = FileOpen(@ScriptDir & "\process" & $i & ".txt", $FO_READ)
+			$file &= FileRead($hFile)
+			FileClose($hFile)
 		Next
 		$hFile = FileOpen($asciiFilePath, $FO_OVERWRITE)
-		FileWrite($hFile, "")
+		FileWrite($hFile, $file)
 		FileClose($hFile)
-		For $i = 0 To $frameCount - 1
-			If Mod($i, 50) = 0 Then
-				Local $t = TimerInit()
-			EndIf
-			$asciiFile &= _GDIPlus_Image2AscII($hImage[$i])
-			$asciiFile &= @CRLF
-			If Mod($i, 50) = 49 Then
-				c("50 Frames created, took $ ms, $ frames left", 1, TimerDiff($t), $frameCount - $i + 1)
-			EndIf
-		Next
-		c("Ascii file created successfully, writing file")
-		$hFile = FileOpen($asciiFilePath, $FO_OVERWRITE)
-		FileWrite($hFile, $asciiFile)
-		FileClose($hFile)
+		c("Concating finished")
 	EndIf
 	c("Loading ascii file")
 	Local $t = TimerInit()
@@ -60,6 +90,7 @@ Func Load()
 EndFunc
 
 Global $28crlfs = @CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF&@CRLF
+
 Func Main()
 	Load()
 	Run("notepad.exe")
@@ -87,87 +118,33 @@ Func Main()
 													  "                                                         Watching!!!!!")
 EndFunc
 
-Func Dispose()
-	If Not $gdiStarted Then
-		Return
-	EndIf
-	c("Disposing")
-	Local $t = TimerInit()
-	For $e In $hImage
-		_GDIPlus_ImageDispose($e)
-	Next
-	_GDIPlus_Shutdown()
-	c("Disposing completed, took $ ms", 1, TimerDiff($t))
-EndFunc
-
 Main()
 
-Func _GDIPlus_Image2AscII($hImage)
-	Local Static $aCharacters = StringSplit("$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,""^`'. ", "", $STR_NOCOUNT)
-	; Local Static $aCharacters[18] = ['#','@','&','$','%','*','!','"','+','=','_','-','~',';',':',',','.',Chr(160)]
-	Local $iWidth = _GDIPlus_ImageGetWidth($hImage)
-	Local $iHeight = _GDIPlus_ImageGetHeight($hImage)
-	Local $iWidthAdapted, $iHeightAdapted, $iCoeff = 1.62
-	If $iHeight >= $iWidth Then
-		$iWidthAdapted = Int((80 * ($iWidth/$iHeight)) * $iCoeff)
-		$iHeightAdapted = 80
-	Else
-		$iWidthAdapted = 130
-		$iHeightAdapted = Int((130 * ($iHeight/$iWidth)) / $iCoeff)
-	EndIf
-	Local $hBitmap_Scaled = _GDIPlus_ImageResize($hImage, $iWidthAdapted, $iHeightAdapted)
-	Local $hBitmap = _GDIPlus_BitmapCreateFromScan0($iWidthAdapted, $iHeightAdapted)
-	Local $hContext = _GDIPlus_ImageGetGraphicsContext($hBitmap)
-	_GDIPlus_GraphicsSetSmoothingMode($hContext, $GDIP_SMOOTHINGMODE_ANTIALIAS8X8)
-	_GDIPlus_GraphicsSetCompositingMode($hContext, $GDIP_COMPOSITINGMODESOURCEOVER)
-	_GDIPlus_GraphicsSetCompositingQuality($hContext, $GDIP_COMPOSITINGQUALITYASSUMELINEAR)
-	_GDIPlus_GraphicsSetInterpolationMode($hContext, $GDIP_INTERPOLATIONMODE_NEARESTNEIGHBOR)
-	_GDIPlus_GraphicsSetPixelOffsetMode($hContext, $GDIP_PIXELOFFSETMODE_HIGHQUALITY)
-	Local $hEffect1 = _GDIPlus_EffectCreateBrightnessContrast(0, 0)
-	_GDIPlus_BitmapApplyEffect($hBitmap_Scaled, $hEffect1)
-	Local $hEffect2 = _GDIPlus_EffectCreateHueSaturationLightness(0, 0, 0)
-	_GDIPlus_BitmapApplyEffect($hBitmap_Scaled, $hEffect2)
-	Local $hIA = _GDIPlus_ImageAttributesCreate()
-	Local $tColorMatrix
-	Local $iGamma = 0/50
-	If $iGamma Then _GDIPlus_ImageAttributesSetGamma($hIA, 0, True, $iGamma) ; values from 0 to 2
-	_GDIPlus_GraphicsDrawImageRectRect($hContext, $hBitmap_Scaled, 0, 0, $iWidthAdapted, $iHeightAdapted, 0, 0, $iWidthAdapted, $iHeightAdapted, $hIA)
-	Local $tBitmapData = _GDIPlus_BitmapLockBits($hBitmap, 0, 0, $iWidthAdapted, $iHeightAdapted, $GDIP_ILMREAD, $GDIP_PXF32RGB)
-	Local $iScan0 = DllStructGetData($tBitmapData, 'Scan0')
-	Local $tPixel = DllStructCreate('int[' & $iWidthAdapted * $iHeightAdapted & '];', $iScan0)
-	Local $iColor
-	Local $aChars[$iWidthAdapted + 1][ $iHeightAdapted + 1]
-	Local $sString = '', $iRowOffset
-	For $iY = 0 To $iHeightAdapted - 1
-		$iRowOffset = $iY * $iWidthAdapted + 1
-		For $iX = 0 To $iWidthAdapted - 1
-			$iColor = DllStructGetData($tPixel, 1, $iRowOffset + $iX)
-			$aChars[$iX][$iY] = $aCharacters[Int(_GDIPlus_ColorGetLuminosity($iColor) / (255 / UBound($aCharacters) + 0.1))]
-			$sString &= $aChars[$iX][$iY]
+Func Dispose()
+	If $processIsActive Then
+		For $i = 0 To $processCount - 1
+			If Not $hasFinished[$i] Then
+				Local $hWnd = _WinGetHandleFromPid($pid[$i])
+				If $hWnd <> -1 Then
+					WinKill(c($hWnd))
+					c("Process killed")
+				EndIf
+			EndIf
 		Next
-		$sString &= @CRLF
-	Next
-	_GDIPlus_BitmapUnlockBits($hBitmap, $tBitmapData)
-	_GDIPlus_EffectDispose($hEffect2)
-	_GDIPlus_EffectDispose($hEffect1)
-	_GDIPlus_GraphicsDispose($hContext)
-	_GDIPlus_BitmapDispose($hBitmap)
-	_GDIPlus_BitmapDispose($hBitmap_Scaled)
-	Return $sString
-EndFunc
-
-Func _GDIPlus_ColorGetLuminosity($iColor)
-	Return(BitAND(BitShift($iColor, 16), 0xFF) * 0.299) _  ; R
-			+ (BitAND(BitShift($iColor, 8), 0xFF) * 0.587) _  ; G
-			+ (BitAND($iColor, 0xFF) * 0.114)  ; B
-EndFunc
-
-Func _GDIPlus_ImageAttributesSetGamma ( $hImageAttributes, $iColorAdjustType = 0, $fEnable = False, $nGamma = 0 )
-	Local $aResult = DllCall ( $__g_hGDIPDll, 'uint', 'GdipSetImageAttributesGamma', 'hwnd', $hImageAttributes, 'int', $iColorAdjustType, 'int', $fEnable, 'float', $nGamma )
-	If @error Then Return SetError ( @error, @extended, False )
-	Return $aResult[0] = 0
+	EndIf
 EndFunc
 
 Func Terminate()
 	Exit
+EndFunc
+
+Func _WinGetHandleFromPid($pid)
+    Local $winList = WinList()
+    For $i = 1 To $winList[0][0]
+        If $pid = WinGetProcess($winList[$i][1]) Then
+			ConsoleWrite("@@ " & $i & " | " & WinGetProcess($winList[$i][1]) & " | " & $winList[$i][0] & " | " & $winList[$i][1] & @CRLF)
+            Return $winList[$i][1]
+        EndIf
+    Next
+    Return -1
 EndFunc
