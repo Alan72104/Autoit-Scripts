@@ -277,11 +277,10 @@ EndFunc
 Func WndProc($hWnd, $idMsg, $wParam, $lParam)
 	Switch $idMsg
 		Case $WM_DROPFILES
-			Local $fileList = _WinAPI_DragQueryFileEx($wParam, 1)  ; The first element is file amount
+			Local $fileList = _WinAPI_DragQueryFileEx($wParam, 1)
 			; Only accept .mp3 file here (case insensitive)
-			; Can also use "xxx" = "xxx"
-			If StringCompare(StringRight($fileList[1], 4), ".mp3") = 0 Then
-				LoadAudioAndPlay($fileList[1])
+			If StringRight($fileList[1], 4) = ".mp3" Then
+				LoadAudioAndPlay($fileList[1])  ; The first element is file amount
 			EndIf
 			_WinAPI_DragFinish($wParam)
 			Return 0
