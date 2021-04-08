@@ -188,13 +188,11 @@ Func Main()
 	$hGraphics = _GDIPlus_GraphicsCreateFromHWND($hGui) 
 	$frameBuffer = _GDIPlus_BitmapCreateFromGraphics($width, $height, $hGraphics)
 	$hFrameBuffer = _GDIPlus_ImageGetGraphicsContext($frameBuffer)
-	If @Compiled Then
-		FileInstall("crate.png", @ScriptDir & "\crate.png")
-		FileInstall("itemBox.png", @ScriptDir & "\itemBox.png")
-		FileInstall("itemKey.png", @ScriptDir & "\itemKey.png")
-		FileInstall("itemMoney.png", @ScriptDir & "\itemMoney.png")
-		FileInstall("itemGlass.png", @ScriptDir & "\itemGlass.png")
-	EndIf
+	If Not FileExists(@ScriptDir & "\crate.png") Then Exit
+	If Not FileExists(@ScriptDir & "\itemBox.png") Then Exit
+	If Not FileExists(@ScriptDir & "\itemKey.png") Then Exit
+	If Not FileExists(@ScriptDir & "\itemMoney.png") Then Exit
+	If Not FileExists(@ScriptDir & "\itemGlass.png") Then Exit
 	$crate = _GDIPlus_BitmapCreateFromFile(@ScriptDir & "\crate.png")
 	$itemBox = _GDIPlus_BitmapCreateFromFile(@ScriptDir & "\itemBox.png")
 	$itemKey = _GDIPlus_BitmapCreateFromFile(@ScriptDir & "\itemKey.png")
