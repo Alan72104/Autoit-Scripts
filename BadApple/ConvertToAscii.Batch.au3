@@ -1,5 +1,9 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Outfile_type=a3x
+#AutoIt3Wrapper_UseX64=y
+#AutoIt3Wrapper_Tidy_Stop_OnError=n
+#AutoIt3Wrapper_Run_Au3Stripper=y
+#Au3Stripper_Parameters=/pe /sf /sv
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #include "..\LibDebug.au3"
@@ -12,8 +16,8 @@ EndIf
 Global $startNum = $CmdLine[1]
 Global $endNum = $CmdLine[2]
 Global $filePath = @ScriptDir & "\" & $CmdLine[3]
-Global $iWidthAdapted = $CmdLine[4]
-Global $iHeightAdapted = $CmdLine[5]
+Global $iWidthNew = $CmdLine[4]
+Global $iHeightNew = $CmdLine[5]
 
 Global $hImage[$endNum - $startNum + 1]
 Global $hFile
@@ -21,11 +25,14 @@ Global $file = ""
 Global $t = 0
 Global $tLastFrame = 0
 Global $timer = 0
+Global $hBmp
+Global $hCtx
 OnAutoItExitRegister("Dispose")
 
 Func Main()
-	c("Starting, start: $, end: $, file: ""$"", width: $, height: $", 1, $startNum, $endNum, $filePath, $iWidthAdapted, $iHeightAdapted)
+	c("Starting, start: $, end: $, file: ""$"", width: $, height: $", 1, $startNum, $endNum, $filePath, $iWidthNew, $iHeightNew)
 	_GDIPlus_Startup()
+	InitConvertingBase()
 	c("Loading all image files")
 	For $i = 0 To $endNum - $startNum
 		$hImage[$i] = _GDIPlus_ImageLoadFromFile(@ScriptDir & "\img\" & $i + $startNum & ".jpeg")
@@ -39,7 +46,7 @@ Func Main()
 	c("Converting")
 	$timer = TimerInit()
 	For $i = 0 To $endNum - $startNum
-		If Mod($i, 25) = 0 Then
+		If Mod($i, 25) = 0 Or $i = 0 Then
 			$t = TimerInit()
 			$tLastFrame = $i
 		EndIf
@@ -57,9 +64,21 @@ EndFunc
 
 Main()
 
+Func InitConvertingBase()
+	$hBmp = __GDIPlus_BitmapCreateFromScan0($iWidthNew, $iHeightNew)
+	$hCtx = __GDIPlus_ImageGetGraphicsContext($hBmp)
+	__GDIPlus_GraphicsSetSmoothingMode($hCtx, $GDIP_SMOOTHINGMODE_ANTIALIAS8X8)
+	__GDIPlus_GraphicsSetCompositingMode($hCtx, $GDIP_COMPOSITINGMODESOURCEOVER)
+	__GDIPlus_GraphicsSetCompositingQuality($hCtx, $GDIP_COMPOSITINGQUALITYASSUMELINEAR)
+	__GDIPlus_GraphicsSetInterpolationMode($hCtx, $GDIP_INTERPOLATIONMODE_NEARESTNEIGHBOR)
+	__GDIPlus_GraphicsSetPixelOffsetMode($hCtx, $GDIP_PIXELOFFSETMODE_HIGHQUALITY)
+EndFunc
+
 Func Dispose()
 	c("Disposing")
 	$t = TimerInit()
+	_GDIPlus_GraphicsDispose($hCtx)
+	_GDIPlus_BitmapDispose($hBmp)
 	For $e In $hImage
 		_GDIPlus_ImageDispose($e)
 	Next
@@ -67,58 +86,112 @@ Func Dispose()
 	c("Disposing completed, took $ ms", 1, TimerDiff($t))
 EndFunc
 
-Func _GDIPlus_Image2AscII($hImage)
-	Local Static $aCharacters = StringSplit("$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,""^`'. ", "", $STR_NOCOUNT)
-	; Local Static $aCharacters[18] = ['#','@','&','$','%','*','!','"','+','=','_','-','~',';',':',',','.',Chr(160)]
-	Local $iWidth = _GDIPlus_ImageGetWidth($hImage)
-	Local $iHeight = _GDIPlus_ImageGetHeight($hImage)
-	Local $iCoeff = 1.62
-	; If $iHeight >= $iWidth Then
-		; $iWidthAdapted = Int((80 * ($iWidth/$iHeight)) * $iCoeff)
-		; $iHeightAdapted = 80
-	; Else
-		; $iWidthAdapted = 130
-		; $iHeightAdapted = Int((130 * ($iHeight/$iWidth)) / $iCoeff)
-	; EndIf
-	Local $hBitmap_Scaled = _GDIPlus_ImageResize($hImage, $iWidthAdapted, $iHeightAdapted)
-	Local $hBitmap = _GDIPlus_BitmapCreateFromScan0($iWidthAdapted, $iHeightAdapted)
-	Local $hContext = _GDIPlus_ImageGetGraphicsContext($hBitmap)
-	_GDIPlus_GraphicsSetSmoothingMode($hContext, $GDIP_SMOOTHINGMODE_ANTIALIAS8X8)
-	_GDIPlus_GraphicsSetCompositingMode($hContext, $GDIP_COMPOSITINGMODESOURCEOVER)
-	_GDIPlus_GraphicsSetCompositingQuality($hContext, $GDIP_COMPOSITINGQUALITYASSUMELINEAR)
-	_GDIPlus_GraphicsSetInterpolationMode($hContext, $GDIP_INTERPOLATIONMODE_NEARESTNEIGHBOR)
-	_GDIPlus_GraphicsSetPixelOffsetMode($hContext, $GDIP_PIXELOFFSETMODE_HIGHQUALITY)
-	Local $hEffect1 = _GDIPlus_EffectCreateBrightnessContrast(0, 0)
-	_GDIPlus_BitmapApplyEffect($hBitmap_Scaled, $hEffect1)
-	Local $hEffect2 = _GDIPlus_EffectCreateHueSaturationLightness(0, 0, 0)
-	_GDIPlus_BitmapApplyEffect($hBitmap_Scaled, $hEffect2)
-	Local $hIA = _GDIPlus_ImageAttributesCreate()
-	Local $tColorMatrix
-	Local $iGamma = 0/50
-	If $iGamma Then _GDIPlus_ImageAttributesSetGamma($hIA, 0, True, $iGamma) ; values from 0 to 2
-	_GDIPlus_GraphicsDrawImageRectRect($hContext, $hBitmap_Scaled, 0, 0, $iWidthAdapted, $iHeightAdapted, 0, 0, $iWidthAdapted, $iHeightAdapted, $hIA)
-	Local $tBitmapData = _GDIPlus_BitmapLockBits($hBitmap, 0, 0, $iWidthAdapted, $iHeightAdapted, $GDIP_ILMREAD, $GDIP_PXF32RGB)
-	Local $iScan0 = DllStructGetData($tBitmapData, 'Scan0')
-	Local $tPixel = DllStructCreate('int[' & $iWidthAdapted * $iHeightAdapted & '];', $iScan0)
+Func _GDIPlus_Image2AscII($hImg)
+	Local Static $aChars = StringSplit("$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,""^`'. ", "", $STR_NOCOUNT)
+	Local Static $iWidth = __GDIPlus_ImageGetWidth($hImg)
+	Local Static $iHeight = __GDIPlus_ImageGetHeight($hImg)
+	Local Static $iWidthNew = $CmdLine[4]
+	Local Static $iHeightNew = $CmdLine[5]
+	Local $hBmpScaled = __GDIPlus_ImageResize($hImg, $iWidthNew, $iHeightNew)
+	Local Static $hiaEmpty = __GDIPlus_ImageAttributesCreate()
+	__GDIPlus_GraphicsDrawImageRectRect($hCtx, $hBmpScaled, 0, 0, $iWidthNew, $iHeightNew, 0, 0, $iWidthNew, $iHeightNew)
+	Local $tbmpData = __GDIPlus_BitmapLockBits($hBmp, 0, 0, $iWidthNew, $iHeightNew)
+	Local $iScan0 = DllStructGetData($tbmpData, 'Scan0')
+	Local $tPixel = DllStructCreate('int[' & $iWidthNew * $iHeightNew & '];', $iScan0)
 	Local $iColor
-	Local $aChars[$iWidthAdapted + 1][ $iHeightAdapted + 1]
+	; Local $aChars[$iWidthNew + 1][$iHeightNew + 1]
 	Local $sString = '', $iRowOffset
-	For $iY = 0 To $iHeightAdapted - 1
-		$iRowOffset = $iY * $iWidthAdapted + 1
-		For $iX = 0 To $iWidthAdapted - 1
+	For $iY = 0 To $iHeightNew - 1
+		$iRowOffset = $iY * $iWidthNew + 1
+		For $iX = 0 To $iWidthNew - 1
 			$iColor = DllStructGetData($tPixel, 1, $iRowOffset + $iX)
-			$aChars[$iX][$iY] = $aCharacters[Int(_GDIPlus_ColorGetLuminosity($iColor) / (255 / UBound($aCharacters) + 0.1))]
-			$sString &= $aChars[$iX][$iY]
+			$sString &= $aChars[Int(_GDIPlus_ColorGetLuminosity($iColor) / (255 / UBound($aChars) + 0.1))]
 		Next
 		$sString &= @CRLF
 	Next
-	_GDIPlus_BitmapUnlockBits($hBitmap, $tBitmapData)
-	_GDIPlus_EffectDispose($hEffect2)
-	_GDIPlus_EffectDispose($hEffect1)
-	_GDIPlus_GraphicsDispose($hContext)
-	_GDIPlus_BitmapDispose($hBitmap)
-	_GDIPlus_BitmapDispose($hBitmap_Scaled)
+	_GDIPlus_BitmapUnlockBits($hBmp, $tbmpData)
+	_GDIPlus_BitmapDispose($hBmpScaled)
 	Return $sString
+EndFunc
+
+Func __GDIPlus_ImageGetHeight($hImage)
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipGetImageHeight", "handle", $hImage, "uint*", 0)
+	Return $aResult[2]
+EndFunc
+
+Func __GDIPlus_ImageGetWidth($hImage)
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipGetImageWidth", "handle", $hImage, "uint*", -1)
+	Return $aResult[2]
+EndFunc
+
+Func __GDIPlus_ImageResize($hImage, $iNewWidth, $iNewHeight)
+	Local $hBitmap = __GDIPlus_BitmapCreateFromScan0($iNewWidth, $iNewHeight)
+	Local $hBmpCtx = __GDIPlus_ImageGetGraphicsContext($hBitmap)
+	_GDIPlus_GraphicsSetInterpolationMode($hBmpCtx, $GDIP_INTERPOLATIONMODE_HIGHQUALITYBICUBIC)
+	_GDIPlus_GraphicsDrawImageRect($hBmpCtx, $hImage, 0, 0, $iNewWidth, $iNewHeight)
+	_GDIPlus_GraphicsDispose($hBmpCtx)
+	Return $hBitmap
+EndFunc
+
+Func __GDIPlus_BitmapCreateFromScan0($iWidth, $iHeight)
+	Local $aResult = DllCall($__g_hGDIPDll, "uint", "GdipCreateBitmapFromScan0", "int", $iWidth, "int", $iHeight, "int", 0, "int", $GDIP_PXF32ARGB, "struct*", 0, "handle*", 0)
+	Return $aResult[6]
+EndFunc
+
+Func __GDIPlus_ImageGetGraphicsContext($hImage)
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipGetImageGraphicsContext", "handle", $hImage, "handle*", 0)
+	Return $aResult[2]
+EndFunc
+
+Func __GDIPlus_GraphicsSetSmoothingMode($hGraphics, $iSmooth)
+	If $iSmooth < $GDIP_SMOOTHINGMODE_DEFAULT Or $iSmooth > $GDIP_SMOOTHINGMODE_ANTIALIAS8X8 Then $iSmooth = $GDIP_SMOOTHINGMODE_DEFAULT
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipSetSmoothingMode", "handle", $hGraphics, "int", $iSmooth)
+	Return True
+EndFunc
+
+Func __GDIPlus_GraphicsSetInterpolationMode($hGraphics, $iInterpolationMode)
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipSetInterpolationMode", "handle", $hGraphics, "int", $iInterpolationMode)
+	Return True
+EndFunc
+
+Func __GDIPlus_GraphicsSetCompositingMode($hGraphics, $iCompositionMode)
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipSetCompositingMode", "handle", $hGraphics, "int", $iCompositionMode)
+	Return True
+EndFunc
+
+Func __GDIPlus_GraphicsSetCompositingQuality($hGraphics, $iCompositionQuality)
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipSetCompositingQuality", "handle", $hGraphics, "int", $iCompositionQuality)
+	Return True
+EndFunc
+
+Func __GDIPlus_GraphicsSetPixelOffsetMode($hGraphics, $iPixelOffsetMode)
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipSetPixelOffsetMode", "handle", $hGraphics, "int", $iPixelOffsetMode)
+	Return True
+EndFunc
+
+Func __GDIPlus_BitmapLockBits($hBitmap, $iLeft, $iTop, $iWidth, $iHeight)
+	Local $tData = DllStructCreate($tagGDIPBITMAPDATA)
+	Local $tRECT = DllStructCreate($tagRECT)
+	DllStructSetData($tRECT, "Left", $iLeft)
+	DllStructSetData($tRECT, "Top", $iTop)
+	DllStructSetData($tRECT, "Right", $iWidth)
+	DllStructSetData($tRECT, "Bottom", $iHeight)
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipBitmapLockBits", "handle", $hBitmap, "struct*", $tRECT, "uint", $GDIP_ILMREAD, "int", $GDIP_PXF32RGB, "struct*", $tData)
+	Return $tData
+EndFunc
+
+
+Func __GDIPlus_ImageAttributesCreate()
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipCreateImageAttributes", "handle*", 0)
+	Return $aResult[1]
+EndFunc
+
+Func __GDIPlus_GraphicsDrawImageRectRect($hGraphics, $hImage, $nSrcX, $nSrcY, $nSrcWidth, $nSrcHeight, $nDstX, $nDstY, $nDstWidth, $nDstHeight)
+	Local $aResult = DllCall($__g_hGDIPDll, "int", "GdipDrawImageRectRect", "handle", $hGraphics, "handle", $hImage, _
+			"float", $nDstX, "float", $nDstY, "float", $nDstWidth, "float", $nDstHeight, _
+			"float", $nSrcX, "float", $nSrcY, "float", $nSrcWidth, "float", $nSrcHeight, _
+			"int", 2, "handle", 0, "ptr", 0, "ptr", 0)
+	Return True
 EndFunc
 
 Func _GDIPlus_ColorGetLuminosity($iColor)
@@ -129,6 +202,5 @@ EndFunc
 
 Func _GDIPlus_ImageAttributesSetGamma ( $hImageAttributes, $iColorAdjustType = 0, $fEnable = False, $nGamma = 0 )
 	Local $aResult = DllCall ( $__g_hGDIPDll, 'uint', 'GdipSetImageAttributesGamma', 'hwnd', $hImageAttributes, 'int', $iColorAdjustType, 'int', $fEnable, 'float', $nGamma )
-	If @error Then Return SetError ( @error, @extended, False )
 	Return $aResult[0] = 0
 EndFunc
