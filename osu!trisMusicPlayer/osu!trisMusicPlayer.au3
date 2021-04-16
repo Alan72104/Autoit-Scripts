@@ -102,7 +102,7 @@ Func Update()
 	$channelLevel = _Bass_ChannelGetLevel($hAudioStream)
 	$currentAudioLevel = (BitShift($channelLevel, 16) + BitAND($channelLevel, 0xFFFF)) / 2
 	AudioLevelAdd($currentAudioLevel)
-	If $currentAudioLevel > $audioLevelAverage + 500 And TimerDiff($hTimerBeat) > 100 Then
+	If $currentAudioLevel > $audioLevelAverage + 500 And TimerDiff($hTimerBeat) > 50 Then
 		$beat = True
 		$triVelocityMultiplier += 15
 		$hTimerBeat = TimerInit()
