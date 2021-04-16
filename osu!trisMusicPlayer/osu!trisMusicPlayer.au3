@@ -79,29 +79,6 @@ Func RemoveTriangle($ele)
 	$tris[0][0] -= 1
 EndFunc 
 
-Func GenerateParticle()
-	$particles[$particles[0][0] + 1][$PARTICLEX] = Random(40, $width - 40, 1)
-	$particles[$particles[0][0] + 1][$PARTICLEY] = 0
-	$particles[$particles[0][0] + 1][$PARTICLEVX] = Random(-0.5, 0.5)
-	$particles[$particles[0][0] + 1][$PARTICLEVY] = Random(0.5, 1)
-	$particles[$particles[0][0] + 1][$PARTICLELIFE] = Random(0, 50, 1)
-	$particles[0][0] += 1
-EndFunc
-
-Func RemoveParticle($ele)
-	If $ele = $maxParticleAmount Then
-	Else
-		For $i = $ele To $particles[0][0] - 1
-			$particles[$i][$PARTICLEX] = $particles[$i + 1][$PARTICLEX]
-			$particles[$i][$PARTICLEY] = $particles[$i + 1][$PARTICLEY]
-			$particles[$i][$PARTICLEVX] = $particles[$i + 1][$PARTICLEVX]
-			$particles[$i][$PARTICLEVY] = $particles[$i + 1][$PARTICLEVY]
-			$particles[$i][$PARTICLELIFE] = $particles[$i + 1][$PARTICLELIFE]
-		Next
-	EndIf
-	$particles[0][0] -= 1
-EndFunc
-
 Global $audioLevelsum
 Func AudioLevelAdd(ByRef $value)
 	$aAudioLevel[$audioLevelIndex] = $value
@@ -114,30 +91,6 @@ Func AudioLevelAdd(ByRef $value)
 		$audioLevelsum += $aAudioLevel[$i]
 	Next
 	$audioLevelAverage = $audioLevelsum / $audioLevelMaxIndex
-EndFunc
-
-Func _Partition(ByRef $a, $low, $high)
-	Local Static $pivot = 0.0
-	Local Static $i = 0
-	$pivot = $a[$high][2]
-	$i = $low - 1
-	For $j = $low To $high - 1
-		If $a[$j][2] >= $pivot Then
-			$i += 1
-			Swap($a, $i, $j)
-		EndIf
-	Next
-	Swap($a, $i + 1, $j)
-	Return $i + 1
-EndFunc
-
-Func QuickSort(ByRef $a, $low, $high)
-	Local Static $pi = 0
-	If $low < $high Then
-		$pi = _Partition($a, $low, $high)
-		QuickSort($a, $low, $pi - 1)
-		QuickSort($a, $pi + 1, $high)
-	EndIf
 EndFunc
 
 ; Global $hTimerUpdate
@@ -164,7 +117,6 @@ Func Update()
 	Next
 	While $tris[0][0] < $maxTriAmount
 		GenerateTriangle()
-		QuickSort($tris, 1, $tris[0][0] - 1)
 	WEnd
 	If $triVelocityMultiplier > $triVelocityMultiplierMin Then
 		$triVelocityMultiplier -= ($triVelocityMultiplier - $triVelocityMultiplierMin) / 3
@@ -172,21 +124,6 @@ Func Update()
 	For $i = 1 To $tris[0][0]
 		$tris[$i][$TRIY] +=  -(($tris[$i][$TRISCALE] / 50 - 1) * (0.5 / 2) + 0.5) * $triVelocityMultiplier
 	Next
-	; $deleteCount = 0
-	; For $i = 1 To $particles[0][0]
-		; If $particles[$i][$PARTICLELIFE] > $maxParticleLife Then
-			; RemoveParticle($i - $deleteCount)
-			; $deleteCount += 1
-		; EndIf
-	; Next
-	; While $particles[0][0] < $maxParticleAmount
-		; GenerateParticle()
-	; WEnd
-	; For $i = 1 To $particles[0][0]
-		; $particles[$i][$PARTICLEX] += 3 * $particles[$i][$PARTICLEVX]
-		; $particles[$i][$PARTICLEY] += 3 * $particles[$i][$PARTICLEVY]
-		; $particles[$i][$PARTICLELIFE] += 1
-	; Next
 	; $nTimerUpdate = TimerDiff($hTimerUpdate)
 EndFunc
 
@@ -209,9 +146,6 @@ Func Draw()
 		$triBuffer[3][1] = $tris[$i][$TRIY] - $tris[$i][$TRISCALE]
 		_GDIPlus_GraphicsFillPolygon($hFrameBuffer, $triBuffer, $hBrushTris[$tris[$i][$TRISHADE]])
 	Next
-	; For $i = 1 to $particles[0][0]
-		; _GDIPlus_GraphicsFillEllipse($hFrameBuffer, $particles[$i][$PARTICLEX], $height - $particles[$i][$PARTICLEY], 5, 5, $hBrushParticle)
-	; Next
 	; $nTimerDraw = TimerDiff($hTimerDraw)
 	_GDIPlus_GraphicsFillRect($hFrameBuffer, 5, $height - 5 - 5, _
 											$currentAudioLevel / 32768 * 50, 5, $hBrushRed)
