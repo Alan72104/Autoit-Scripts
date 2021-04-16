@@ -146,7 +146,7 @@ EndFunc
 ; Global $hTimerDraw
 ; Global $nTimerDraw = 0
 Func Draw()
-	Local Static $triBuffer[4][2] = [[3, ""], [-50.0, 150.0], [300.0, 500.0], [550.0, 150.0]]
+	Local Static $triBuffer[4][2] = [[3, 0x00], [-50.0, 150.0], [300.0, 500.0], [550.0, 150.0]]
 	; $hTimerDraw = TimerInit()
 	_GDIPlus_GraphicsClear($hFrameBuffer, $bgColorARGB)
 	For $i = 1 To $tris[0][0]
