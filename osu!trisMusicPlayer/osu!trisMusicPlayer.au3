@@ -216,12 +216,13 @@ EndFunc
 Main()
 
 Func LoadAudioAndPlay($filePath)
-	If _BASS_ChannelIsActive($hAudioStream) Then
+	If $playing Then
 		_BASS_ChannelStop($hAudioStream)
 		_BASS_StreamFree($hAudioStream)
 	EndIf
-	$hAudioStream = _BASS_StreamCreateFile(0, $filePath, 0, 0, $BASS_SAMPLE_LOOP)
+	$hAudioStream = _BASS_StreamCreateFile(False, $filePath, 0, 0, 0)
 	_Bass_ChannelPlay($hAudioStream, 0)
+	$playing = True
 EndFunc
 
 ; WindowProc callback function that processes messages sent to the window
