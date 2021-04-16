@@ -99,6 +99,7 @@ EndFunc
 ; Global $nTimerUpdate = 0
 Func Update()
 	; $hTimerUpdate = TimerInit()
+	$playing = _BASS_ChannelIsActive($hAudioStream)
 	$channelLevel = $playing ? _Bass_ChannelGetLevel($hAudioStream) : 0
 	$currentAudioLevel = (BitShift($channelLevel, 16) + BitAND($channelLevel, 0xFFFF)) / 2
 	AudioLevelAdd($currentAudioLevel)
