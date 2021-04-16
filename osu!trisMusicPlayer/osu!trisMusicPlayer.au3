@@ -1,3 +1,8 @@
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_UseX64=y
+#AutoIt3Wrapper_Run_Au3Stripper=y
+#Au3Stripper_Parameters=/rm
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 #include <GDIPlus.au3>
 #include <GUIConstantsEx.au3>
 #include <WinAPISys.au3>
@@ -35,6 +40,22 @@ Func plus3()
 EndFunc
 Func subt3()
 	$effectCycleTime -= 5
+EndFunc
+
+Func Swap(ByRef $a, $i, $j)
+	Local Static $t[4]
+	$t[0] = $a[$i][0]
+	$t[1] = $a[$i][1]
+	$t[2] = $a[$i][2]
+	$t[3] = $a[$i][3]
+	$a[$i][0] = $a[$j][0]
+	$a[$i][1] = $a[$j][1]
+	$a[$i][2] = $a[$j][2]
+	$a[$i][3] = $a[$j][3]
+	$a[$j][0] = $t[0]
+	$a[$j][1] = $t[1]
+	$a[$j][2] = $t[2]
+	$a[$j][3] = $t[3]
 EndFunc
 
 Func GenerateTriangle()
@@ -95,6 +116,30 @@ Func AudioLevelAdd(ByRef $value)
 	$audioLevelAverage = $audioLevelsum / $audioLevelMaxIndex
 EndFunc
 
+Func _Partition(ByRef $a, $low, $high)
+	Local Static $pivot = 0.0
+	Local Static $i = 0
+	$pivot = $a[$high][2]
+	$i = $low - 1
+	For $j = $low To $high - 1
+		If $a[$j][2] >= $pivot Then
+			$i += 1
+			Swap($a, $i, $j)
+		EndIf
+	Next
+	Swap($a, $i + 1, $j)
+	Return $i + 1
+EndFunc
+
+Func QuickSort(ByRef $a, $low, $high)
+	Local Static $pi = 0
+	If $low < $high Then
+		$pi = _Partition($a, $low, $high)
+		QuickSort($a, $low, $pi - 1)
+		QuickSort($a, $pi + 1, $high)
+	EndIf
+EndFunc
+
 ; Global $hTimerUpdate
 ; Global $nTimerUpdate = 0
 Func Update()
@@ -119,6 +164,7 @@ Func Update()
 	Next
 	While $tris[0][0] < $maxTriAmount
 		GenerateTriangle()
+		QuickSort($tris, 1, $tris[0][0] - 1)
 	WEnd
 	If $triVelocityMultiplier > $triVelocityMultiplierMin Then
 		$triVelocityMultiplier -= ($triVelocityMultiplier - $triVelocityMultiplierMin) / 3
@@ -226,7 +272,6 @@ Func LoadAudioAndPlay($filePath)
 	$playing = True
 EndFunc
 
-; WindowProc callback function that processes messages sent to the window
 Func WndProc($hWnd, $idMsg, $wParam, $lParam)
 	Switch $idMsg
 		Case $WM_DROPFILES
