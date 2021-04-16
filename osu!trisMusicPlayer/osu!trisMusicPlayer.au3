@@ -126,21 +126,21 @@ Func Update()
 	For $i = 1 To $tris[0][0]
 		$tris[$i][$TRIY] +=  -(($tris[$i][$TRISCALE] / 50 - 1) * (0.5 / 2) + 0.5) * $triVelocityMultiplier
 	Next
-	$deleteCount = 0
-	For $i = 1 To $particles[0][0]
-		If $particles[$i][$PARTICLELIFE] > $maxParticleLife Then
-			RemoveParticle($i - $deleteCount)
-			$deleteCount += 1
-		EndIf
-	Next
-	While $particles[0][0] < $maxParticleAmount
-		GenerateParticle()
-	WEnd
-	For $i = 1 To $particles[0][0]
-		$particles[$i][$PARTICLEX] += 3 * $particles[$i][$PARTICLEVX]
-		$particles[$i][$PARTICLEY] += 3 * $particles[$i][$PARTICLEVY]
-		$particles[$i][$PARTICLELIFE] += 1
-	Next
+	; $deleteCount = 0
+	; For $i = 1 To $particles[0][0]
+		; If $particles[$i][$PARTICLELIFE] > $maxParticleLife Then
+			; RemoveParticle($i - $deleteCount)
+			; $deleteCount += 1
+		; EndIf
+	; Next
+	; While $particles[0][0] < $maxParticleAmount
+		; GenerateParticle()
+	; WEnd
+	; For $i = 1 To $particles[0][0]
+		; $particles[$i][$PARTICLEX] += 3 * $particles[$i][$PARTICLEVX]
+		; $particles[$i][$PARTICLEY] += 3 * $particles[$i][$PARTICLEVY]
+		; $particles[$i][$PARTICLELIFE] += 1
+	; Next
 	; $nTimerUpdate = TimerDiff($hTimerUpdate)
 EndFunc
 
@@ -163,9 +163,9 @@ Func Draw()
 		$triBuffer[3][1] = $tris[$i][$TRIY] - $tris[$i][$TRISCALE]
 		_GDIPlus_GraphicsFillPolygon($hFrameBuffer, $triBuffer, $hBrushTris[$tris[$i][$TRISHADE]])
 	Next
-	For $i = 1 to $particles[0][0]
-		_GDIPlus_GraphicsFillEllipse($hFrameBuffer, $particles[$i][$PARTICLEX], $height - $particles[$i][$PARTICLEY], 5, 5, $hBrushParticle)
-	Next
+	; For $i = 1 to $particles[0][0]
+		; _GDIPlus_GraphicsFillEllipse($hFrameBuffer, $particles[$i][$PARTICLEX], $height - $particles[$i][$PARTICLEY], 5, 5, $hBrushParticle)
+	; Next
 	; $nTimerDraw = TimerDiff($hTimerDraw)
 	_GDIPlus_GraphicsFillRect($hFrameBuffer, 5, $height - 5 - 5, _
 											$currentAudioLevel / 32768 * 50, 5, $hBrushRed)

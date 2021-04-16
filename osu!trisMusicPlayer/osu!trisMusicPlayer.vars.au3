@@ -38,8 +38,8 @@ Global $wndprocPreviousValue
 Global Const $maxParticleAmount = 100
 Global Const $maxParticleLife = 125
 Global Enum $PARTICLEX, $PARTICLEY, $PARTICLEVX, $PARTICLEVY, $PARTICLELIFE
-Global $particles[$maxParticleAmount + 1][5] = [ _
-											   [2,0x00,0x00,0x00,0x00], _
-											   [15, 25, 0.1, 0.3,   5], _
-											   [81, 14, 0.2, 0.1,   5]]
+; Global $particles[$maxParticleAmount + 1][5] = [ _
+											   ; [2,0x00,0x00,0x00,0x00], _
+											   ; [15, 25, 0.1, 0.3,   5], _
+											   ; [81, 14, 0.2, 0.1,   5]]
 Global $playing = False
