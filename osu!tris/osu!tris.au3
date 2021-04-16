@@ -207,7 +207,7 @@ Func FrameBufferTransfer()
 		_GDIPlus_GraphicsDrawImageRect($hGraphics, $frameBuffer, 0 + $effectOffset, 0 + $effectOffset, _
 																$width + 2 * Abs($effectOffset), $height + 2 * Abs($effectOffset))
 		If $effectLast > $effectCycleTime Then
-		$hTimerEffect = TimerInit()
+			$hTimerEffect = TimerInit()
 		EndIf
 	Else
 		_GDIPlus_GraphicsDrawImage($hGraphics, $frameBuffer, 0, 0)

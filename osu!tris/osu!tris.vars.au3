@@ -20,7 +20,7 @@ Global $tris[$maxTriAmount + 1][4] = [ _
 									 [137.0, 367.0, 88.9, 7]]
 Global $triVelocityMultiplier = 3.9
 Global Const $triVelocityMultiplierMin = 1
-Global $hTimerBeat, $hTimerFrame, $hTimerEffet
+Global $hTimerBeat, $hTimerFrame, $hTimerEffect
 Global $smoothedFrameTime = 0.0
 Global Const $frameTimeSmoothingRatio = 0.3
 Global $effectLast, $effextOffset
