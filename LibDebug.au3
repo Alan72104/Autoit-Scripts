@@ -2,6 +2,7 @@
 #include <StringConstants.au3>
 
 Global $_LD_Debug = True
+Global $_Profile_Map[0][3]
 
 Func _DebugOff()
 	$_LD_Debug = False
@@ -131,6 +132,7 @@ Func ca($a, $nl = True)
 		$s &= @CRLF
 	EndIf
 	ConsoleWrite($s)
+	Return $a
 EndFunc
 
 ; Consoleout Error
@@ -140,4 +142,69 @@ Func ce($e, $nl = True)
 	Else
 		ConsoleWrite("ERROR:" & $e)
 	EndIf
+EndFunc
+
+; Profiler profile Add
+Func pa($v)
+	For $i = 0 to UBound($_Profile_Map, 1) - 1
+		If $_Profile_Map[$i][0] = $v Then
+			c("Profiler >> The profile name already exists: ""$""", 1, $v)
+			Return
+		EndIf
+	Next
+	ReDim $_Profile_Map[UBound($_Profile_Map, 1) + 1][3]
+	$_Profile_Map[UBound($_Profile_Map, 1) - 1][0] = $v  ; Name
+	$_Profile_Map[UBound($_Profile_Map, 1) - 1][1] = 0.0  ; Value
+	$_Profile_Map[UBound($_Profile_Map, 1) - 1][2] = -1  ; Start time, -1 is not running
+EndFunc
+
+; Profiler profile Start
+Func ps($v)
+	For $i = 0 to UBound($_Profile_Map, 1) - 1
+		If $_Profile_Map[$i][0] = $v Then
+			If $_Profile_Map[$i][2] = -1 Then
+				$_Profile_Map[$i][2] = TimerInit()
+			Else
+				c("Profiler >> The specified profile to start is already started: ""$""", 1, $v)
+			EndIf
+			Return
+		EndIf
+	Next
+	c("Profiler >> The specified profile to start does not exist: ""$"", adding profile...", 1, $v)
+	pa($v)
+	ps($v)
+EndFunc
+
+; Profiler profile End
+Func pe($v)
+	For $i = 0 to UBound($_Profile_Map, 1) - 1
+		If $_Profile_Map[$i][0] = $v Then
+			If $_Profile_Map[$i][2] <> -1 Then
+				$_Profile_Map[$i][1] += TimerDiff($_Profile_Map[$i][2])
+				$_Profile_Map[$i][2] = -1
+			Else
+				c("Profiler >> The specified profile to end has not start: ""$""", 1, $v)
+			EndIf
+			Return
+		EndIf
+	Next
+	c("Profiler >> The specified profile to end does not exist: ""$""", 1, $v)
+EndFunc
+
+; Profiler Print result
+Func pp()
+	c("Profiler >> Printing result ====================")
+	For $i = 0 To UBound($_Profile_Map, 1) -1
+		c("Profiler >> $ - $", 1, $i + 1, $_Profile_Map[$i][0])
+		c("Profiler >> L $ ms", 1, Round($_Profile_Map[$i][1], 2))
+	Next
+	c("Profiler >> ====================================")
+EndFunc
+
+; Profiler Reset
+Func pr()
+	For $i = 0 To UBound($_Profile_Map, 1) -1
+		$_Profile_Map[$i][1] = 0.0
+		$_Profile_Map[$i][2] = -1
+	Next
 EndFunc
