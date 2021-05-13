@@ -89,7 +89,7 @@ Func cv($nl = True, $v1 = 0x0, $v2 = 0x0, $v3 = 0x0, $v4 = 0x0, $v5 = 0x0, _
 EndFunc
 
 ; Consoleout Array
-Func ca($a, $nl = True)
+Func ca(ByRef $a, $nl = True)
 	If Not IsArray($a) Then
 		Return
 	EndIf
