@@ -2,13 +2,15 @@
 #include <FileConstants.au3>
 #include <AutoItConstants.au3>
 
-Global Const $songName = "lagtrain"
+Global Const $songName = "BadApple"
+; Global Const $songName = "lagtrain"
 Global Const $width = 180
 Global Const $height = 100
-; Global Const $frameCount = 6572
-Global Const $frameCount = 3777
-; Global Const $fps = 30
-Global Const $fps = 15
+Global Const $frameCount = 6572
+; Global Const $frameCount = 3777
+Global Const $fps = 30
+; Global Const $fps = 15
+
 Global $hImage[$frameCount]
 Global $ascii[$frameCount]
 Global $asciiFilePath = @ScriptDir & "\" & $width & "x" & $height & $songName & ".txt"
