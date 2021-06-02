@@ -27,7 +27,29 @@ Func c($s = "", $nl = True, $v1 = 0x0, $v2 = 0x0, $v3 = 0x0, _
 		$s = StringReplace($s, "$$", "@PH@")
 		$s = StringReplace($s, "$", "@PH2@")
 		For $i = 1 To @NumParams - 2
-			$s = StringReplace($s, "@PH2@", Eval("v" & $i), 1)
+			; Don't use Eval() to prevent breaking when compiled using stripper param /rm "rename variables"
+			Switch ($i)
+				Case 1
+					$s = StringReplace($s, "@PH2@", $v1, 1)
+				Case 2
+					$s = StringReplace($s, "@PH2@", $v2, 1)
+				Case 3
+					$s = StringReplace($s, "@PH2@", $v3, 1)
+				Case 4
+					$s = StringReplace($s, "@PH2@", $v3, 1)
+				Case 5
+					$s = StringReplace($s, "@PH2@", $v5, 1)
+				Case 6
+					$s = StringReplace($s, "@PH2@", $v6, 1)
+				Case 7
+					$s = StringReplace($s, "@PH2@", $v7, 1)
+				Case 8
+					$s = StringReplace($s, "@PH2@", $v8, 1)
+				Case 9
+					$s = StringReplace($s, "@PH2@", $v9, 1)
+				Case 10
+					$s = StringReplace($s, "@PH2@", $v10, 1)
+			EndSwitch
 			If @extended = 0 Then ExitLoop
 		Next
 		$s = StringReplace($s, "@PH@", "$")
@@ -52,7 +74,29 @@ Func iv($s = "", $v1 = 0x0, $v2 = 0x0, $v3 = 0x0, _
 		$s = StringReplace($s, "$$", "@PH@")
 		$s = StringReplace($s, "$", "@PH2@")
 		For $i = 1 To @NumParams - 1
-			$s = StringReplace($s, "@PH2@", Eval("v" & $i), 1)
+			; Don't use Eval() to prevent breaking when compiled using stripper param /rm "rename variables"
+			Switch ($i)
+				Case 1
+					$s = StringReplace($s, "@PH2@", $v1, 1)
+				Case 2
+					$s = StringReplace($s, "@PH2@", $v2, 1)
+				Case 3
+					$s = StringReplace($s, "@PH2@", $v3, 1)
+				Case 4
+					$s = StringReplace($s, "@PH2@", $v3, 1)
+				Case 5
+					$s = StringReplace($s, "@PH2@", $v5, 1)
+				Case 6
+					$s = StringReplace($s, "@PH2@", $v6, 1)
+				Case 7
+					$s = StringReplace($s, "@PH2@", $v7, 1)
+				Case 8
+					$s = StringReplace($s, "@PH2@", $v8, 1)
+				Case 9
+					$s = StringReplace($s, "@PH2@", $v9, 1)
+				Case 10
+					$s = StringReplace($s, "@PH2@", $v10, 1)
+			EndSwitch
 			If @extended = 0 Then ExitLoop
 		Next
 		$s = StringReplace($s, "@PH@", "$")
