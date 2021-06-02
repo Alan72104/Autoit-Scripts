@@ -114,6 +114,7 @@ EndFunc
 
 ; Consoleout Variable
 ; Only accepts the name of variable without the $ as string
+; Does not work when compiled using stripper param /rm "rename variables"
 Func cv($nl = True, $v1 = 0x0, $v2 = 0x0, $v3 = 0x0, $v4 = 0x0, $v5 = 0x0, _
 						$v6 = 0x0, $v7 = 0x0, $v8 = 0x0, $v9 = 0x0, $v10 = 0x0)
 	If Not $_LD_Debug Then
