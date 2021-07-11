@@ -1,4 +1,4 @@
-; Last modified date: 6/2/2021
+; Last modified date: 7/12/2021
 
 #include-once
 #include <StringConstants.au3>
@@ -189,6 +189,17 @@ Func ce($e, $nl = True)
 	Else
 		ConsoleWrite("ERROR:" & $e)
 	EndIf
+EndFunc
+
+; Throw an error msgbox
+Func throw($progName, $funcName, $m1 = 0x0, $m2 = 0x0, $m3 = 0x0, $m4 = 0x0, $m5 = 0x0, _
+								 $m6 = 0x0, $m7 = 0x0, $m8 = 0x0, $m9 = 0x0, $m10 = 0x0)
+	Local $s = "Exception catched on """ & $funcName & "()"""
+	For $i = 1 To @NumParams - 2
+		$s &= @CRLF & @CRLF
+		$s &= Eval("m" & $i)
+	Next
+	MsgBox($MB_ICONWARNING + $MB_TOPMOST, $progName, $s)
 EndFunc
 
 ; Profiler profile Add
